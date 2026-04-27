@@ -72,7 +72,7 @@
             try{
                 $conn   = $conexao->conectar();
                 $sql    = "SELECT t.*, i.nome as instrutor_nome 
-                           FROM treinamento t 
+                           FROM treino t 
                            LEFT JOIN instrutor i ON t.codigoInstrutor = i.codigo 
                            WHERE t.codigoAluno = $codigoAluno 
                            ORDER BY t.codigo DESC";
@@ -87,13 +87,13 @@
             }
         }//fim do consultarTreinosAluno
 
-        function consultarExerciciosTreino(Conexao $conexao, int $codigoTreinamento){
+        function consultarExerciciosTreino(Conexao $conexao, int $codigoTreino){
             try{
                 $conn   = $conexao->conectar();
                 $sql    = "SELECT e.*, ex.nome as exercicio_nome, ex.descricao
-                           FROM treinamento_exercicios e
+                           FROM treinoExercicio e
                            JOIN exercicio ex ON e.codigoExercicio = ex.codigo
-                           WHERE e.codigoTreinamento = $codigoTreinamento";
+                           WHERE e.codigoTreino = $codigoTreino";
                 $result = mysqli_query($conn, $sql);
                 $dados  = [];
                 while($row = mysqli_fetch_assoc($result)){
@@ -124,7 +124,7 @@
             try{
                 $conn   = $conexao->conectar();
                 $sql    = "SELECT t.*, a.nome as aluno_nome, i.nome as instrutor_nome 
-                           FROM treinamento t 
+                           FROM treino t 
                            JOIN aluno a ON t.codigoAluno = a.codigo
                            LEFT JOIN instrutor i ON t.codigoInstrutor = i.codigo
                            WHERE t.codigo = $codigoTreino";

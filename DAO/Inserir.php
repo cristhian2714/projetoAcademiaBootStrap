@@ -25,7 +25,7 @@
                 $objetivo   = mysqli_real_escape_string($conn, $objetivo);
                 $frequencia = mysqli_real_escape_string($conn, $frequencia);
                 $duracao    = mysqli_real_escape_string($conn, $duracao);
-                $sql        = "INSERT INTO treinamento (codigoAluno, codigoInstrutor, objetivo, frequencia, duracao) 
+                $sql        = "INSERT INTO treino (codigoAluno, codigoInstrutor, objetivo, frequencia, duracao) 
                                VALUES ($codigoAluno, $codigoInstrutor, '$objetivo', '$frequencia', '$duracao')";
                 if(mysqli_query($conn, $sql)){
                     return mysqli_insert_id($conn);
@@ -37,11 +37,11 @@
             }
         }//fim do inserirTreino
 
-        function inserirExercicioTreino(Conexao $conexao, $codigoTreinamento, $codigoExercicio, $series, $repeticoes){
+        function inserirExercicioTreino(Conexao $conexao, $codigoTreino, $codigoExercicio, $series, $repeticoes){
             try{
                 $conn = $conexao->conectar();
-                $sql  = "INSERT INTO treinamento_exercicios (codigoTreinamento, codigoExercicio, series, repeticoes) 
-                         VALUES ($codigoTreinamento, $codigoExercicio, $series, $repeticoes)";
+                $sql  = "INSERT INTO treinoExercicio (codigoTreino, codigoExercicio, series, repeticoes) 
+                         VALUES ($codigoTreino, $codigoExercicio, $series, $repeticoes)";
                 return mysqli_query($conn, $sql);
             }catch(Exception $erro){
                 echo "Algo deu errado <br><br>$erro";

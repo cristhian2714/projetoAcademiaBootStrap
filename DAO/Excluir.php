@@ -18,7 +18,7 @@
         function excluirTreino(Conexao $conexao, $codigo){
             try{
                 $conn = $conexao->conectar();
-                $sql  = "DELETE FROM treinamento WHERE codigo = $codigo";
+                $sql  = "DELETE FROM treino WHERE codigo = $codigo";
                 return mysqli_query($conn, $sql);
             }catch(Exception $erro){
                 echo "Algo deu errado <br><br>$erro";
@@ -29,7 +29,7 @@
         function excluirExercicioTreino(Conexao $conexao, $codigo){
             try{
                 $conn = $conexao->conectar();
-                $sql  = "DELETE FROM treinamento_exercicios WHERE codigo = $codigo";
+                $sql  = "DELETE FROM treinoExercicio WHERE codigo = $codigo";
                 return mysqli_query($conn, $sql);
             }catch(Exception $erro){
                 echo "Algo deu errado <br><br>$erro";
