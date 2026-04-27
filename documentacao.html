@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Documentação — Gym System Pro</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 960px; margin: 0 auto; padding: 30px; color: #222; }
+  h1 { background: #198754; color: #fff; padding: 20px; border-radius: 8px; }
+  h2 { color: #198754; border-bottom: 2px solid #198754; padding-bottom: 6px; margin-top: 40px; }
+  h3 { color: #0d6efd; margin-top: 25px; }
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 16px; border-radius: 6px; overflow-x: auto; font-size: 14px; }
+  code { background: #f0f0f0; color: #c7254e; padding: 2px 6px; border-radius: 4px; font-size: 14px; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th { background: #198754; color: #fff; padding: 10px; text-align: left; }
+  td { padding: 9px 10px; border-bottom: 1px solid #ddd; }
+  tr:nth-child(even) { background: #f8f8f8; }
+  .box { border-left: 4px solid #198754; background: #f0fff4; padding: 12px 16px; border-radius: 4px; margin: 12px 0; }
+  .warn { border-left: 4px solid #dc3545; background: #fff5f5; padding: 12px 16px; border-radius: 4px; margin: 12px 0; }
+  .info { border-left: 4px solid #0d6efd; background: #f0f6ff; padding: 12px 16px; border-radius: 4px; margin: 12px 0; }
+  .badge { display: inline-block; background: #198754; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 13px; }
+  @media print { body { padding: 10px; } pre { font-size: 12px; } }
+</style>
+</head>
+<body>
+
+<h1>📘 Documentação Técnica — Gym System Pro</h1>
+<p><strong>Sistema de gerenciamento de academia</strong> desenvolvido em PHP com arquitetura DAO, banco MySQL e interface Bootstrap 5.</p>
+
+<!-- ===== ESTRUTURA ===== -->
+<h2>1. Estrutura do Projeto</h2>
+<pre>
+academiaDesfault2/
+├── index.php              → Ponto de entrada / navegação
+├── academia.sql           → Script de criação do banco de dados
+├── DAO/                   → Camada de acesso ao banco
+│   ├── Conexao.php        → Abre conexão com o MySQL
+│   ├── Consultar.php      → Consultas SELECT
+│   ├── Inserir.php        → Inserções INSERT
+│   ├── Atualizar.php      → Atualizações UPDATE
+│   └── Excluir.php        → Exclusões DELETE
+└── telas/                 → Telas do sistema (View)
+    ├── dashboard.php      → Tela inicial
+    ├── alunos.php         → Lista e exclui alunos
+    ├── aluno_form.php     → Cadastra / edita aluno
+    ├── treinos.php        → Fichas de treino
+    ├── treino_form.php    → Novo treino
+    └── treino_detalhes.php→ Gerencia exercícios do treino
+</pre>
+
+<div class="box">
+  <strong>Padrão DAO (Data Access Object):</strong> separa a lógica de banco de dados da lógica de apresentação. Cada operação (consultar, inserir, atualizar, excluir) tem sua própria classe dedicada.
+</div>
+
+<!-- ===== BANCO ===== -->
+<h2>2. Banco de Dados — academia.sql</h2>
+<table>
+  <tr><th>Tabela</th><th>Função</th><th>Campos principais</th></tr>
+  <tr><td>plano</td><td>Planos de mensalidade</td><td>codigo, nome, descricao, valor</td></tr>
+  <tr><td>aluno</td><td>Dados dos alunos</td><td>codigo, nome, dtNascimento, peso, altura, objetivo, codigoPlano</td></tr>
+  <tr><td>instrutor</td><td>Instrutores</td><td>codigo, nome, especialidade</td></tr>
+  <tr><td>treino (treinamento)</td><td>Ficha de treino</td><td>codigo, objetivo, frequencia, duracao, codigoAluno, codigoInstrutor</td></tr>
+  <tr><td>exercicio</td><td>Catálogo de exercícios</td><td>codigo, nome, descricao</td></tr>
+  <tr><td>treinamento_exercicios</td><td>Exercícios de uma ficha</td><td>codigo, codigoTreinamento, codigoExercicio, series, repeticoes</td></tr>
+</table>
+
+<h3>Relacionamentos (Chaves Estrangeiras)</h3>
+<pre>
+aluno ──────────→ plano       (cada aluno tem um plano)
+treino ─────────→ aluno       (cada treino pertence a um aluno)
+treino ─────────→ instrutor   (cada treino tem um instrutor)
+treinamento_exercicios → treino    (exercícios de uma ficha)
+treinamento_exercicios → exercicio (referencia o catálogo)
+</pre>
+
+<!-- ===== INDEX ===== -->
+<h2>3. index.php — Ponto de Entrada</h2>
+<pre>
+&lt;?php
+    session_start();
+    $page          = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
+    $allowed_pages = ['dashboard', 'alunos', 'aluno_form', 'treinos', 'treino_form', 'treino_detalhes'];
+
+    if(!in_array($page, $allowed_pages)){
+        $page = 'dashboard';
+    }//fim if
+?&gt;
+...
+&lt;?php include "telas/{$page}.php"; ?&gt;
+</pre>
+
+<table>
+  <tr><th>Código</th><th>Explicação</th></tr>
+  <tr><td><code>session_start()</code></td><td>Inicia a sessão PHP (necessária para armazenar dados entre páginas)</td></tr>
+  <tr><td><code>$_GET['page']</code></td><td>Lê o parâmetro da URL. Ex: <code>index.php?page=alunos</code></td></tr>
+  <tr><td><code>$allowed_pages</code></td><td>Lista de páginas permitidas — segurança para não incluir arquivos arbitrários</td></tr>
+  <tr><td><code>in_array()</code></td><td>Verifica se o valor existe dentro de um array</td></tr>
+  <tr><td><code>include "telas/{$page}.php"</code></td><td>Carrega dinamicamente a tela correta conforme a URL</td></tr>
+</table>
+
+<!-- ===== CONEXAO ===== -->
+<h2>4. DAO/Conexao.php — Conexão com o Banco</h2>
+<pre>
+&lt;?php
+    namespace Projeto\DAO;
+
+    class Conexao{
+        function conectar(){
+            try{
+                $conn = mysqli_connect('127.0.0.1', 'root', '', 'academiaDefault');
+                if($conn){
+                    mysqli_set_charset($conn, "utf8mb4");
+                    return $conn;
+                }
+            }catch(Exception $erro){
+                echo "Algo deu errado na conexão &lt;br&gt;&lt;br&gt;$erro";
+            }
+            return null;
+        }//fim do conectar
+    }//fim da classe
+?&gt;
+</pre>
+
+<table>
+  <tr><th>Código</th><th>Explicação</th></tr>
+  <tr><td><code>namespace Projeto\DAO</code></td><td>Define o "endereço" da classe. Evita conflitos de nomes entre classes</td></tr>
+  <tr><td><code>class Conexao</code></td><td>Define uma classe — molde para criar objetos com comportamentos</td></tr>
+  <tr><td><code>function conectar()</code></td><td>Método (função dentro da classe) que abre a conexão</td></tr>
+  <tr><td><code>mysqli_connect(host, user, senha, banco)</code></td><td>Função PHP que conecta ao MySQL. Retorna o objeto de conexão</td></tr>
+  <tr><td><code>mysqli_set_charset($conn, "utf8mb4")</code></td><td>Define o encoding para suportar acentos e caracteres especiais</td></tr>
+  <tr><td><code>try{ } catch(Exception $erro){ }</code></td><td>Tenta executar o código; se der erro, captura e exibe a mensagem</td></tr>
+  <tr><td><code>return $conn</code></td><td>Retorna a conexão para quem chamou o método</td></tr>
+</table>
+
+<!-- ===== CONSULTAR ===== -->
+<h2>5. DAO/Consultar.php — Consultas SELECT</h2>
+<pre>
+&lt;?php
+    namespace Projeto\DAO;
+    require_once('Conexao.php');
+    use Projeto\DAO\Conexao;
+
+    class Consultar{
+        function consultarAlunos(Conexao $conexao){
+            try{
+                $conn   = $conexao-&gt;conectar();
+                $sql    = "SELECT a.*, p.nome as plano_nome
+                           FROM aluno a
+                           LEFT JOIN plano p ON a.codigoPlano = p.codigo
+                           ORDER BY a.codigo DESC";
+                $result = mysqli_query($conn, $sql);
+                $dados  = [];
+                while($row = mysqli_fetch_assoc($result)){
+                    $dados[] = $row;
+                }//fim while
+                return $dados;
+            }catch(Exception $erro){
+                echo "Algo deu errado &lt;br&gt;&lt;br&gt;$erro";
+            }
+        }//fim do consultarAlunos
+
+        function consultarAluno(Conexao $conexao, int $codigo){
+            try{
+                $conn   = $conexao-&gt;conectar();
+                $sql    = "SELECT * FROM aluno WHERE codigo=$codigo";
+                $result = mysqli_query($conn, $sql);
+                while($dados = mysqli_fetch_assoc($result)){
+                    if($dados['codigo'] == $codigo){
+                        return $dados;
+                    }
+                }//fim while
+            }catch(Exception $erro){
+                echo "Algo deu errado &lt;br&gt;&lt;br&gt;$erro";
+            }
+            return null;
+        }//fim do consultarAluno
+    }//fim da classe
+?&gt;
+</pre>
+
+<table>
+  <tr><th>Código</th><th>Explicação</th></tr>
+  <tr><td><code>require_once('Conexao.php')</code></td><td>Inclui o arquivo da classe Conexao. <code>once</code> garante que não seja incluído duas vezes</td></tr>
+  <tr><td><code>use Projeto\DAO\Conexao</code></td><td>Importa a classe do namespace para usar pelo nome simples</td></tr>
+  <tr><td><code>function consultarAlunos(Conexao $conexao)</code></td><td>O parâmetro <code>Conexao $conexao</code> exige que seja passado um objeto da classe Conexao</td></tr>
+  <tr><td><code>LEFT JOIN plano p ON ...</code></td><td>Une duas tabelas na consulta. Traz o nome do plano junto com os dados do aluno</td></tr>
+  <tr><td><code>mysqli_query($conn, $sql)</code></td><td>Executa a query SQL no banco e retorna o resultado</td></tr>
+  <tr><td><code>mysqli_fetch_assoc($result)</code></td><td>Lê uma linha do resultado como array associativo: <code>$row['nome']</code>, <code>$row['peso']</code></td></tr>
+  <tr><td><code>$dados[] = $row</code></td><td>Adiciona cada linha ao array de resultados</td></tr>
+</table>
+
+<!-- ===== INSERIR ===== -->
+<h2>6. DAO/Inserir.php — Inserção INSERT</h2>
+<pre>
+&lt;?php
+    namespace Projeto\DAO;
+    require_once('Conexao.php');
+    use Projeto\DAO\Conexao;
+
+    class Inserir{
+        function inserirAluno(Conexao $conexao, $nome, $dtNascimento, $peso, $altura, $objetivo, $codigoPlano){
+            try{
+                $conn         = $conexao-&gt;conectar();
+                $nome         = mysqli_real_escape_string($conn, $nome);
+                $objetivo     = mysqli_real_escape_string($conn, $objetivo);
+                $dtNascimento = mysqli_real_escape_string($conn, $dtNascimento);
+                $sql          = "INSERT INTO aluno (nome, dtNascimento, peso, altura, objetivo, codigoPlano)
+                                 VALUES ('$nome', '$dtNascimento', $peso, $altura, '$objetivo', $codigoPlano)";
+                return mysqli_query($conn, $sql);
+            }catch(Exception $erro){
+                echo "Algo deu errado &lt;br&gt;&lt;br&gt;$erro";
+                return false;
+            }
+        }//fim do inserirAluno
+
+        function inserirTreino(Conexao $conexao, $codigoAluno, $codigoInstrutor, $objetivo, $frequencia, $duracao){
+            try{
+                $conn = $conexao-&gt;conectar();
+                // ... escape strings ...
+                $sql  = "INSERT INTO treinamento (...) VALUES (...)";
+                if(mysqli_query($conn, $sql)){
+                    return mysqli_insert_id($conn); // retorna o ID gerado
+                }
+                return false;
+            }catch(Exception $erro){ ... }
+        }//fim do inserirTreino
+    }//fim da classe
+?&gt;
+</pre>
+
+<table>
+  <tr><th>Código</th><th>Explicação</th></tr>
+  <tr><td><code>mysqli_real_escape_string($conn, $valor)</code></td><td>Sanitiza strings do usuário, escapando caracteres como <code>'</code> e <code>"</code>. Protege contra SQL Injection</td></tr>
+  <tr><td><code>INSERT INTO tabela (...) VALUES (...)</code></td><td>Comando SQL que insere um novo registro na tabela</td></tr>
+  <tr><td><code>mysqli_insert_id($conn)</code></td><td>Retorna o ID gerado automaticamente pelo último INSERT. Usado para redirecionar ao treino recém-criado</td></tr>
+</table>
+
+<!-- ===== ATUALIZAR ===== -->
+<h2>7. DAO/Atualizar.php — Atualização UPDATE</h2>
+<pre>
+&lt;?php
+    namespace Projeto\DAO;
+    require_once('Conexao.php');
+    use Projeto\DAO\Conexao;
+
+    class Atualizar{
+        function atualizarAluno(Conexao $conexao, $codigo, $nome, $dtNascimento, $peso, $altura, $objetivo, $codigoPlano){
+            try{
+                $conn         = $conexao-&gt;conectar();
+                $nome         = mysqli_real_escape_string($conn, $nome);
+                $objetivo     = mysqli_real_escape_string($conn, $objetivo);
+                $dtNascimento = mysqli_real_escape_string($conn, $dtNascimento);
+                $sql          = "UPDATE aluno
+                                 SET nome = '$nome', dtNascimento = '$dtNascimento', peso = $peso,
+                                     altura = $altura, objetivo = '$objetivo', codigoPlano = $codigoPlano
+                                 WHERE codigo = $codigo";
+                return mysqli_query($conn, $sql);
+            }catch(Exception $erro){
+                echo "Algo deu errado &lt;br&gt;&lt;br&gt;$erro";
+                return false;
+            }
+        }//fim do atualizarAluno
+    }//fim da classe
+?&gt;
+</pre>
+
+<div class="warn">
+  <strong>⚠️ O WHERE é obrigatório!</strong> Sem <code>WHERE codigo = $codigo</code>, o UPDATE alteraria <strong>todos</strong> os registros da tabela.
+</div>
+
+<!-- ===== EXCLUIR ===== -->
+<h2>8. DAO/Excluir.php — Exclusão DELETE</h2>
+<pre>
+&lt;?php
+    namespace Projeto\DAO;
+    require_once('Conexao.php');
+    use Projeto\DAO\Conexao;
+
+    class Excluir{
+        function excluirAluno(Conexao $conexao, $codigo){
+            try{
+                $conn = $conexao-&gt;conectar();
+                $sql  = "DELETE FROM aluno WHERE codigo = $codigo";
+                return mysqli_query($conn, $sql);
+            }catch(Exception $erro){
+                echo "Algo deu errado &lt;br&gt;&lt;br&gt;$erro";
+                return false;
+            }
+        }//fim do excluirAluno
+
+        function excluirTreino(Conexao $conexao, $codigo){ ... }//fim do excluirTreino
+        function excluirExercicioTreino(Conexao $conexao, $codigo){ ... }//fim do excluirExercicioTreino
+    }//fim da classe
+?&gt;
+</pre>
+
+<table>
+  <tr><th>Código</th><th>Explicação</th></tr>
+  <tr><td><code>DELETE FROM aluno WHERE codigo = $codigo</code></td><td>Remove apenas o registro com aquele ID. O WHERE é essencial — sem ele apagaria tudo</td></tr>
+</table>
+
+<!-- ===== TELAS ===== -->
+<h2>9. Padrão das Telas (pasta telas/)</h2>
+<p>Cada tela segue o mesmo padrão do professor: PHP no topo, lógica inline, <code>$mensagem</code> para feedback.</p>
+<pre>
+&lt;?php
+    require_once __DIR__ . '/../DAO/Conexao.php';
+    require_once __DIR__ . '/../DAO/Inserir.php';
+
+    use Projeto\DAO\Conexao;
+    use Projeto\DAO\Inserir;
+
+    $conexao  = new Conexao();   // instancia a conexão
+    $mensagem = "";              // variável de feedback ao usuário
+
+    if($_SERVER['REQUEST_METHOD'] == 'POST'){
+        // lê os dados do formulário
+        $nome     = $_POST['nome']  ?? '';
+        $peso     = (float)$_POST['peso'];
+        // ... chama o DAO ...
+        $inserir  = new Inserir();
+        if($inserir-&gt;inserirAluno($conexao, $nome, ...)){
+            $mensagem = "&lt;div class='alert alert-success'&gt;Cadastrado com sucesso!&lt;/div&gt;";
+        }else{
+            $mensagem = "&lt;div class='alert alert-danger'&gt;Erro ao cadastrar.&lt;/div&gt;";
+        }//fim if
+    }//fim if
+?&gt;
+&lt;?= $mensagem ?&gt;   &lt;!-- exibe o resultado na mesma página --&gt;
+</pre>
+
+<h3>Conceitos PHP nas telas</h3>
+<table>
+  <tr><th>Código</th><th>Explicação</th></tr>
+  <tr><td><code>__DIR__</code></td><td>Caminho absoluto da pasta onde o arquivo atual está. Garante que os require_once funcionem de qualquer lugar</td></tr>
+  <tr><td><code>$_SERVER['REQUEST_METHOD'] == 'POST'</code></td><td>Verifica se o formulário foi enviado via POST</td></tr>
+  <tr><td><code>$_POST['campo'] ?? ''</code></td><td>Lê o valor do campo do formulário. O <code>??</code> retorna '' se o campo não existir</td></tr>
+  <tr><td><code>$_GET['codigo']</code></td><td>Lê parâmetro da URL. Ex: <code>?codigo=5</code></td></tr>
+  <tr><td><code>(int)$_GET['codigo']</code></td><td>Converte para inteiro — segurança para evitar texto malicioso em IDs</td></tr>
+  <tr><td><code>(float)$_POST['peso']</code></td><td>Converte para número decimal</td></tr>
+  <tr><td><code>htmlspecialchars($valor)</code></td><td>Converte caracteres HTML especiais (&lt; &gt; &amp;) para evitar ataques XSS ao exibir dados</td></tr>
+  <tr><td><code>&lt;?= $variavel ?&gt;</code></td><td>Atalho para <code>&lt;?php echo $variavel; ?&gt;</code></td></tr>
+  <tr><td><code>foreach($array as $item)</code></td><td>Percorre todos os itens de um array</td></tr>
+  <tr><td><code>foreach($array as &amp;$item)</code></td><td>O <code>&amp;</code> (referência) permite modificar o array original durante o loop</td></tr>
+</table>
+
+<!-- ===== FLUXO ===== -->
+<h2>10. Fluxo Completo — Cadastrar um Aluno</h2>
+<table>
+  <tr><th>Passo</th><th>O que acontece</th><th>Arquivo</th></tr>
+  <tr><td>1</td><td>Usuário acessa <code>index.php?page=aluno_form</code></td><td>index.php</td></tr>
+  <tr><td>2</td><td>index.php inclui <code>telas/aluno_form.php</code></td><td>index.php</td></tr>
+  <tr><td>3</td><td>PHP verifica: não há POST → mostra formulário vazio</td><td>aluno_form.php</td></tr>
+  <tr><td>4</td><td>Usuário preenche nome, peso, plano... e clica "Cadastrar"</td><td>Navegador</td></tr>
+  <tr><td>5</td><td>Formulário envia POST para <code>index.php?page=aluno_form</code></td><td>Navegador</td></tr>
+  <tr><td>6</td><td>PHP detecta POST → lê $_POST → chama <code>$inserir→inserirAluno()</code></td><td>aluno_form.php</td></tr>
+  <tr><td>7</td><td>Inserir.php executa: <code>INSERT INTO aluno VALUES (...)</code></td><td>Inserir.php</td></tr>
+  <tr><td>8</td><td><code>$mensagem = "Aluno cadastrado com sucesso!"</code></td><td>aluno_form.php</td></tr>
+  <tr><td>9</td><td>Página recarrega mostrando o alert verde de sucesso</td><td>Navegador</td></tr>
+</table>
+
+<!-- ===== SEGURANCA ===== -->
+<h2>11. Segurança Implementada</h2>
+<table>
+  <tr><th>Técnica</th><th>Onde</th><th>Protege contra</th></tr>
+  <tr><td><code>in_array($page, $allowed_pages)</code></td><td>index.php</td><td>Inclusão de arquivos arbitrários via URL</td></tr>
+  <tr><td><code>(int)$_GET['codigo']</code></td><td>Telas, action files</td><td>Injeção de texto em parâmetros numéricos</td></tr>
+  <tr><td><code>mysqli_real_escape_string()</code></td><td>Inserir.php, Atualizar.php</td><td>SQL Injection em campos de texto</td></tr>
+  <tr><td><code>htmlspecialchars()</code></td><td>Todas as telas</td><td>XSS (execução de scripts maliciosos na tela)</td></tr>
+  <tr><td><code>onclick="return confirm(...)"</code></td><td>Botões de excluir</td><td>Exclusão acidental</td></tr>
+</table>
+
+<!-- ===== CONCEITOS ===== -->
+<h2>12. Tabela Geral de Conceitos PHP</h2>
+<table>
+  <tr><th>Conceito</th><th>Sintaxe</th><th>Para que serve</th></tr>
+  <tr><td>Namespace</td><td><code>namespace Projeto\DAO;</code></td><td>Organizar classes evitando conflito de nomes</td></tr>
+  <tr><td>Importar classe</td><td><code>use Projeto\DAO\Conexao;</code></td><td>Usar a classe pelo nome simples</td></tr>
+  <tr><td>Instanciar objeto</td><td><code>$obj = new Classe();</code></td><td>Criar um objeto da classe</td></tr>
+  <tr><td>Chamar método</td><td><code>$obj->metodo();</code></td><td>Executar função de um objeto</td></tr>
+  <tr><td>Try/Catch</td><td><code>try{...}catch(Exception $e){...}</code></td><td>Tratar erros sem quebrar o sistema</td></tr>
+  <tr><td>Ternário</td><td><code>$a ? 'sim' : 'não'</code></td><td>Condição em linha única</td></tr>
+  <tr><td>Null coalescing</td><td><code>$_POST['x'] ?? ''</code></td><td>Valor padrão se a variável for null/indefinida</td></tr>
+  <tr><td>Tipo inteiro</td><td><code>(int)$valor</code></td><td>Converte para número inteiro</td></tr>
+  <tr><td>Tipo decimal</td><td><code>(float)$valor</code></td><td>Converte para número com casas decimais</td></tr>
+  <tr><td>__DIR__</td><td><code>__DIR__</code></td><td>Caminho absoluto da pasta do arquivo atual</td></tr>
+  <tr><td>require_once</td><td><code>require_once 'arquivo.php'</code></td><td>Inclui arquivo uma única vez</td></tr>
+  <tr><td>Sessão</td><td><code>session_start()</code></td><td>Inicia sessão para guardar dados entre páginas</td></tr>
+  <tr><td>CRUD</td><td>SELECT / INSERT / UPDATE / DELETE</td><td>As 4 operações básicas no banco de dados</td></tr>
+</table>
+
+<hr>
+<p style="text-align:center; color:#888; font-size:13px;">
+  Gym System Pro — Documentação Técnica | Gerada automaticamente
+</p>
+
+</body>
+</html>

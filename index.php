@@ -1,30 +1,11 @@
 <?php
-session_start();
-$page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
+    session_start();
+    $page          = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
+    $allowed_pages = ['dashboard', 'alunos', 'aluno_form', 'treinos', 'treino_form', 'treino_detalhes'];
 
-// Allowed pages to include
-$allowed_pages = ['dashboard', 'alunos', 'aluno_form', 'treinos', 'treino_form', 'treino_detalhes'];
-if (!in_array($page, $allowed_pages)) {
-    $page = 'dashboard';
-}
-
-require_once 'DAO/Conexao.php';
-require_once 'DAO/Consultar.php';
-require_once 'DAO/Inserir.php';
-require_once 'DAO/Atualizar.php';
-require_once 'DAO/Excluir.php';
-
-use Projeto\DAO\Conexao;
-use Projeto\DAO\Consultar;
-use Projeto\DAO\Inserir;
-use Projeto\DAO\Atualizar;
-use Projeto\DAO\Excluir;
-
-$conexao = new Conexao();
-$consultar = new Consultar();
-$inserir = new Inserir();
-$atualizar = new Atualizar();
-$excluir = new Excluir();
+    if(!in_array($page, $allowed_pages)){
+        $page = 'dashboard';
+    }//fim if
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -76,16 +57,6 @@ $excluir = new Excluir();
 
     <!-- Main Content -->
     <div class="container my-5" id="main-container">
-        
-        <?php if (isset($_SESSION['msg'])): ?>
-            <div class="alert alert-<?= $_SESSION['msg_type'] ?? 'success' ?> shadow-sm">
-                <?= $_SESSION['msg'] ?>
-            </div>
-            <?php 
-            unset($_SESSION['msg']); 
-            unset($_SESSION['msg_type']);
-            ?>
-        <?php endif; ?>
 
         <?php include "telas/{$page}.php"; ?>
     </div>

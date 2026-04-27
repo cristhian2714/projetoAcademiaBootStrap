@@ -1,18 +1,57 @@
 <?php
-    $codigoAluno = isset($_GET['aluno']) ? (int)$_GET['aluno'] : 0;
+    require_once __DIR__ . '/../DAO/Conexao.php';
+    require_once __DIR__ . '/../DAO/Consultar.php';
+    require_once __DIR__ . '/../DAO/Inserir.php';
 
-    $alunos     = $consultar->consultarAlunosLista($conexao);
-    $instrutores= $consultar->consultarInstrutores($conexao);
+    use Projeto\DAO\Conexao;
+    use Projeto\DAO\Consultar;
+    use Projeto\DAO\Inserir;
+
+    $conexao   = new Conexao();
+    $consultar = new Consultar();
+    $mensagem  = "";
+    $treinoId  = 0;
+
+    if($_SERVER['REQUEST_METHOD'] == 'POST'){
+        $codigoAluno     = (int)$_POST['codigoAluno'];
+        $codigoInstrutor = (int)$_POST['codigoInstrutor'];
+        $objetivo        = trim($_POST['objetivo']);
+        $frequencia      = trim($_POST['frequencia']);
+        $duracao         = trim($_POST['duracao']);
+
+        $inserir  = new Inserir();
+        $treinoId = $inserir->inserirTreino($conexao, $codigoAluno, $codigoInstrutor, $objetivo, $frequencia, $duracao);
+
+        if($treinoId){
+            $mensagem = "<div class='alert alert-success'>Treino criado com sucesso! Redirecionando para adicionar exercícios...</div>";
+        }else{
+            $mensagem = "<div class='alert alert-danger'>Erro ao criar treino.</div>";
+        }//fim if
+    }//fim if
+
+    $codigoAluno = isset($_GET['aluno']) ? (int)$_GET['aluno'] : 0;
+    $alunos      = $consultar->consultarAlunosLista($conexao);
+    $instrutores = $consultar->consultarInstrutores($conexao);
 ?>
+
+<?php if($treinoId > 0): ?>
+    <script>
+        setTimeout(function(){
+            window.location.href = 'index.php?page=treino_detalhes&treino=<?= $treinoId ?>';
+        }, 1500);
+    </script>
+<?php endif; ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="text-light">Cadastrar Novo Treino</h2>
     <a href="index.php?page=treinos<?= $codigoAluno > 0 ? '&aluno=' . $codigoAluno : '' ?>" class="btn btn-outline-secondary">Voltar</a>
 </div>
 
+<?= $mensagem ?>
+
 <div class="card bg-dark border-secondary">
     <div class="card-body">
-        <form method="POST" action="DAO/treino_action.php?default_action=save_treino">
+        <form method="POST" action="index.php?page=treino_form">
             <div class="row g-3">
                 <div class="col-md-12">
                     <label class="form-label text-light">Aluno <span class="text-danger">*</span></label>

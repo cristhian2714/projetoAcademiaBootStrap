@@ -1,8 +1,30 @@
 <?php
-    $codigoAluno = isset($_GET['aluno']) ? (int)$_GET['aluno'] : 0;
+    require_once __DIR__ . '/../DAO/Conexao.php';
+    require_once __DIR__ . '/../DAO/Consultar.php';
+    require_once __DIR__ . '/../DAO/Excluir.php';
 
-    $alunos  = $consultar->consultarAlunosLista($conexao);
-    $treinos = [];
+    use Projeto\DAO\Conexao;
+    use Projeto\DAO\Consultar;
+    use Projeto\DAO\Excluir;
+
+    $conexao   = new Conexao();
+    $consultar = new Consultar();
+    $mensagem  = "";
+
+    //Excluir treino
+    if(isset($_GET['action']) && $_GET['action'] == 'delete_treino' && isset($_GET['codigo'])){
+        $codigoTreino = (int)$_GET['codigo'];
+        $excluir      = new Excluir();
+        if($excluir->excluirTreino($conexao, $codigoTreino)){
+            $mensagem = "<div class='alert alert-success'>Treino excluído com sucesso!</div>";
+        }else{
+            $mensagem = "<div class='alert alert-danger'>Erro ao excluir treino.</div>";
+        }//fim if
+    }//fim if
+
+    $codigoAluno = isset($_GET['aluno']) ? (int)$_GET['aluno'] : 0;
+    $alunos      = $consultar->consultarAlunosLista($conexao);
+    $treinos     = [];
 
     if($codigoAluno > 0){
         $treinos = $consultar->consultarTreinosAluno($conexao, $codigoAluno);
@@ -11,6 +33,8 @@
         }//fim foreach
     }//fim if
 ?>
+
+<?= $mensagem ?>
 
 <div class="row align-items-center mb-4">
     <div class="col-md-5">
@@ -65,7 +89,7 @@
                             <i class="bi bi-gear"></i> Editar Exercícios
                         </a>
                         &nbsp;&nbsp;|&nbsp;&nbsp;
-                        <a href="DAO/treino_action.php?default_action=delete_treino&codigo=<?= $t['codigo'] ?>&aluno=<?= $codigoAluno ?>" class="text-danger text-decoration-none" onclick="return confirm('Deseja excluir este treino?')">
+                        <a href="index.php?page=treinos&aluno=<?= $codigoAluno ?>&action=delete_treino&codigo=<?= $t['codigo'] ?>" class="text-danger text-decoration-none" onclick="return confirm('Deseja excluir este treino?')">
                             <i class="bi bi-trash"></i> Excluir Treino
                         </a>
                     </div>

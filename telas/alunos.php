@@ -1,6 +1,30 @@
 <?php
+    require_once __DIR__ . '/../DAO/Conexao.php';
+    require_once __DIR__ . '/../DAO/Consultar.php';
+    require_once __DIR__ . '/../DAO/Excluir.php';
+
+    use Projeto\DAO\Conexao;
+    use Projeto\DAO\Consultar;
+    use Projeto\DAO\Excluir;
+
+    $conexao   = new Conexao();
+    $consultar = new Consultar();
+    $mensagem  = "";
+
+    if(isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['codigo'])){
+        $codigo  = (int)$_GET['codigo'];
+        $excluir = new Excluir();
+        if($excluir->excluirAluno($conexao, $codigo)){
+            $mensagem = "<div class='alert alert-success'>Aluno excluído com sucesso!</div>";
+        }else{
+            $mensagem = "<div class='alert alert-danger'>Erro ao excluir aluno.</div>";
+        }//fim if
+    }//fim if
+
     $alunos = $consultar->consultarAlunos($conexao);
 ?>
+
+<?= $mensagem ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="text-light">Gestão de Alunos</h2>
@@ -41,7 +65,7 @@
                                 <a href="index.php?page=aluno_form&codigo=<?= $a['codigo'] ?>" class="btn btn-sm btn-outline-warning" title="Editar">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <a href="DAO/aluno_action.php?default_action=delete&codigo=<?= $a['codigo'] ?>" class="btn btn-sm btn-outline-danger" title="Excluir" onclick="return confirm('Tem certeza que deseja excluir?');">
+                                <a href="index.php?page=alunos&action=delete&codigo=<?= $a['codigo'] ?>" class="btn btn-sm btn-outline-danger" title="Excluir" onclick="return confirm('Tem certeza que deseja excluir?');">
                                     <i class="bi bi-trash"></i>
                                 </a>
                             </td>

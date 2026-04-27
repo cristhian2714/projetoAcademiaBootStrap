@@ -1,4 +1,18 @@
 <?php
+    require_once __DIR__ . '/../DAO/Conexao.php';
+    require_once __DIR__ . '/../DAO/Consultar.php';
+    require_once __DIR__ . '/../DAO/Inserir.php';
+    require_once __DIR__ . '/../DAO/Excluir.php';
+
+    use Projeto\DAO\Conexao;
+    use Projeto\DAO\Consultar;
+    use Projeto\DAO\Inserir;
+    use Projeto\DAO\Excluir;
+
+    $conexao   = new Conexao();
+    $consultar = new Consultar();
+    $mensagem  = "";
+
     $codigoTreino = isset($_GET['treino']) ? (int)$_GET['treino'] : 0;
 
     if($codigoTreino == 0){
@@ -6,9 +20,34 @@
         exit;
     }//fim if
 
-    $treino              = $consultar->consultarTreino($conexao, $codigoTreino);
-    $exerciciosDrop      = $consultar->consultarExercicios($conexao);
-    $exerciciosVinculados= $consultar->consultarExerciciosTreino($conexao, $codigoTreino);
+    //Adicionar exercício
+    if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['codigoExercicio'])){
+        $codigoExercicio = (int)$_POST['codigoExercicio'];
+        $series          = (int)$_POST['series'];
+        $repeticoes      = (int)$_POST['repeticoes'];
+
+        $inserir = new Inserir();
+        if($inserir->inserirExercicioTreino($conexao, $codigoTreino, $codigoExercicio, $series, $repeticoes)){
+            $mensagem = "<div class='alert alert-success'>Exercício adicionado com sucesso!</div>";
+        }else{
+            $mensagem = "<div class='alert alert-danger'>Erro ao adicionar exercício.</div>";
+        }//fim if
+    }//fim if
+
+    //Remover exercício
+    if(isset($_GET['action']) && $_GET['action'] == 'remove' && isset($_GET['codigo'])){
+        $codigoExercicioTreino = (int)$_GET['codigo'];
+        $excluir               = new Excluir();
+        if($excluir->excluirExercicioTreino($conexao, $codigoExercicioTreino)){
+            $mensagem = "<div class='alert alert-success'>Exercício removido da ficha!</div>";
+        }else{
+            $mensagem = "<div class='alert alert-danger'>Erro ao remover exercício.</div>";
+        }//fim if
+    }//fim if
+
+    $treino               = $consultar->consultarTreino($conexao, $codigoTreino);
+    $exerciciosDrop       = $consultar->consultarExercicios($conexao);
+    $exerciciosVinculados = $consultar->consultarExerciciosTreino($conexao, $codigoTreino);
 
     if(!$treino){
         echo "<div class='alert alert-danger'>Treino não encontrado.</div>";
@@ -24,6 +63,8 @@
     <a href="index.php?page=treinos&aluno=<?= $treino['codigoAluno'] ?>" class="btn btn-outline-secondary">Concluir e Voltar</a>
 </div>
 
+<?= $mensagem ?>
+
 <div class="row">
     <div class="col-md-5 mb-4">
         <div class="card bg-dark border-secondary">
@@ -31,10 +72,7 @@
                 <i class="bi bi-plus-circle"></i> Adicionar Exercício
             </div>
             <div class="card-body">
-                <form method="POST" action="DAO/treino_action.php?default_action=add_exercicio">
-                    <input type="hidden" name="codigoTreinamento" value="<?= $codigoTreino ?>">
-                    <input type="hidden" name="aluno" value="<?= $treino['codigoAluno'] ?>">
-
+                <form method="POST" action="index.php?page=treino_detalhes&treino=<?= $codigoTreino ?>">
                     <div class="mb-3">
                         <label class="form-label text-light">Selecione o Exercício</label>
                         <select name="codigoExercicio" class="form-select bg-dark text-light border-secondary" required>
@@ -80,7 +118,7 @@
                                 <span class="badge bg-secondary text-white"><?= $ev['series'] ?> Séries</span>
                                 <span class="badge bg-secondary text-white"><?= $ev['repeticoes'] ?> Reps</span>
                             </div>
-                            <a href="DAO/treino_action.php?default_action=remove_exercicio&codigo=<?= $ev['codigo'] ?>&treino=<?= $codigoTreino ?>"
+                            <a href="index.php?page=treino_detalhes&treino=<?= $codigoTreino ?>&action=remove&codigo=<?= $ev['codigo'] ?>"
                                class="btn btn-sm btn-outline-danger"
                                onclick="return confirm('Remover exercício da ficha?')">
                                 <i class="bi bi-trash"></i>

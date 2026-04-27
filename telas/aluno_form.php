@@ -1,4 +1,47 @@
 <?php
+    require_once __DIR__ . '/../DAO/Conexao.php';
+    require_once __DIR__ . '/../DAO/Consultar.php';
+    require_once __DIR__ . '/../DAO/Inserir.php';
+    require_once __DIR__ . '/../DAO/Atualizar.php';
+
+    use Projeto\DAO\Conexao;
+    use Projeto\DAO\Consultar;
+    use Projeto\DAO\Inserir;
+    use Projeto\DAO\Atualizar;
+
+    $conexao   = new Conexao();
+    $consultar = new Consultar();
+    $mensagem  = "";
+
+    if($_SERVER['REQUEST_METHOD'] == 'POST'){
+        $codigo       = isset($_POST['codigo']) ? (int)$_POST['codigo'] : 0;
+        $nome         = $_POST['nome']         ?? '';
+        $dtNascimento = $_POST['dtNascimento'] ?? '';
+        $peso         = (float)($_POST['peso']        ?? 0);
+        $altura       = (float)($_POST['altura']      ?? 0);
+        $objetivo     = $_POST['objetivo']     ?? '';
+        $codigoPlano  = (int)($_POST['codigoPlano']   ?? 0);
+
+        if($codigo > 0){
+            //Atualizar
+            $atualizar = new Atualizar();
+            if($atualizar->atualizarAluno($conexao, $codigo, $nome, $dtNascimento, $peso, $altura, $objetivo, $codigoPlano)){
+                $mensagem = "<div class='alert alert-success'>Aluno atualizado com sucesso!</div>";
+            }else{
+                $mensagem = "<div class='alert alert-danger'>Erro ao atualizar aluno.</div>";
+            }//fim if
+        }else{
+            //Inserir
+            $inserir = new Inserir();
+            if($inserir->inserirAluno($conexao, $nome, $dtNascimento, $peso, $altura, $objetivo, $codigoPlano)){
+                $mensagem = "<div class='alert alert-success'>Aluno cadastrado com sucesso!</div>";
+                $nome = $dtNascimento = $peso = $altura = $objetivo = $codigoPlano = "";
+            }else{
+                $mensagem = "<div class='alert alert-danger'>Erro ao cadastrar aluno.</div>";
+            }//fim if
+        }//fim if
+    }//fim if
+
     $codigo = isset($_GET['codigo']) ? (int)$_GET['codigo'] : 0;
     $aluno  = null;
 
@@ -14,9 +57,11 @@
     <a href="index.php?page=alunos" class="btn btn-outline-secondary">Voltar</a>
 </div>
 
+<?= $mensagem ?>
+
 <div class="card bg-dark border-secondary">
     <div class="card-body">
-        <form method="POST" action="DAO/aluno_action.php">
+        <form method="POST" action="index.php?page=aluno_form<?= $codigo > 0 ? '&codigo=' . $codigo : '' ?>">
             <input type="hidden" name="codigo" value="<?= $aluno ? $aluno['codigo'] : '' ?>">
 
             <div class="row g-3">
