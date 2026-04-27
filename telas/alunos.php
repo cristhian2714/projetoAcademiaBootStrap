@@ -1,5 +1,5 @@
 <?php
-$alunos = $consultar->consultarAlunos($conexao);
+    $alunos = $consultar->consultarAlunos($conexao);
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -25,10 +25,10 @@ $alunos = $consultar->consultarAlunos($conexao);
                 </tr>
             </thead>
             <tbody>
-                <?php if (empty($alunos)): ?>
+                <?php if(empty($alunos)): ?>
                     <tr><td colspan="8" class="text-center py-4 text-secondary">Nenhum aluno cadastrado.</td></tr>
                 <?php else: ?>
-                    <?php foreach ($alunos as $a): ?>
+                    <?php foreach($alunos as $a): ?>
                         <tr>
                             <td><?= $a['codigo'] ?></td>
                             <td class="fw-bold text-white"><?= htmlspecialchars($a['nome']) ?></td>

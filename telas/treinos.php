@@ -1,18 +1,15 @@
 <?php
-$codigoAluno = isset($_GET['aluno']) ? (int)$_GET['aluno'] : 0;
+    $codigoAluno = isset($_GET['aluno']) ? (int)$_GET['aluno'] : 0;
 
-$alunos = $consultar->consultarAlunosLista($conexao);
-$treinos = [];
+    $alunos  = $consultar->consultarAlunosLista($conexao);
+    $treinos = [];
 
-if ($codigoAluno > 0) {
-    // Busca treinos do aluno
-    $treinos = $consultar->consultarTreinosAluno($conexao, $codigoAluno);
-    
-    // Para cada treino buscar exercícios
-    foreach ($treinos as &$t) {
-        $t['exercicios'] = $consultar->consultarExerciciosTreino($conexao, $t['codigo']);
-    }
-}
+    if($codigoAluno > 0){
+        $treinos = $consultar->consultarTreinosAluno($conexao, $codigoAluno);
+        foreach($treinos as &$t){
+            $t['exercicios'] = $consultar->consultarExerciciosTreino($conexao, $t['codigo']);
+        }//fim foreach
+    }//fim if
 ?>
 
 <div class="row align-items-center mb-4">
@@ -41,18 +38,18 @@ if ($codigoAluno > 0) {
 </div>
 
 <div id="treinos-container">
-    <?php if ($codigoAluno == 0): ?>
+    <?php if($codigoAluno == 0): ?>
         <div class="text-center text-secondary p-5 mt-4" style="border: 2px dashed #6c757d; border-radius: 12px;">
             <i class="bi bi-search display-1"></i>
             <h4 class="mt-3 text-light">Nenhum aluno selecionado</h4>
             <p>Por favor, selecione um aluno na lista acima.</p>
         </div>
-    <?php elseif (empty($treinos)): ?>
+    <?php elseif(empty($treinos)): ?>
         <div class="alert alert-warning mt-4 text-center">
             <i class="bi bi-exclamation-triangle"></i> Este aluno ainda não possui uma ficha de treinamento cadastrada.
         </div>
     <?php else: ?>
-        
+
         <?php foreach($treinos as $t): ?>
             <div class="card bg-dark text-light border-secondary mt-4 shadow-sm">
                 <div class="card-header bg-transparent border-bottom border-secondary py-3">
@@ -61,7 +58,7 @@ if ($codigoAluno > 0) {
                         <span class="badge bg-secondary text-white"><i class="bi bi-clock"></i> <?= htmlspecialchars($t['duracao']) ?></span>
                     </div>
                     <div class="text-secondary small mt-2">
-                        <i class="bi bi-calendar-check"></i> Frequência: <?= htmlspecialchars($t['frequencia']) ?> &nbsp;&nbsp;|&nbsp;&nbsp; 
+                        <i class="bi bi-calendar-check"></i> Frequência: <?= htmlspecialchars($t['frequencia']) ?> &nbsp;&nbsp;|&nbsp;&nbsp;
                         <i class="bi bi-person-badge"></i> Instrutor: <?= htmlspecialchars($t['instrutor_nome'] ?? 'Não definido') ?>
                         &nbsp;&nbsp;|&nbsp;&nbsp;
                         <a href="index.php?page=treino_detalhes&treino=<?= $t['codigo'] ?>" class="text-warning text-decoration-none">
@@ -74,7 +71,7 @@ if ($codigoAluno > 0) {
                     </div>
                 </div>
                 <div class="card-body">
-                    <?php if (!empty($t['exercicios'])): ?>
+                    <?php if(!empty($t['exercicios'])): ?>
                         <?php foreach($t['exercicios'] as $ex): ?>
                             <div class="bg-secondary p-3 mb-3 rounded border-start border-success border-4 shadow-sm">
                                 <div class="d-flex justify-content-between align-items-center">
@@ -90,7 +87,7 @@ if ($codigoAluno > 0) {
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <p class="text-center text-secondary my-4">Nenhum exercício vinculado a este treino ainda. 
+                        <p class="text-center text-secondary my-4">Nenhum exercício vinculado a este treino ainda.
                             <a href="index.php?page=treino_detalhes&treino=<?= $t['codigo'] ?>" class="text-success">Adicionar Exercícios</a>
                         </p>
                     <?php endif; ?>

@@ -1,8 +1,8 @@
 <?php
-$codigoAluno = isset($_GET['aluno']) ? (int)$_GET['aluno'] : 0;
+    $codigoAluno = isset($_GET['aluno']) ? (int)$_GET['aluno'] : 0;
 
-$alunos = $consultar->consultarAlunosLista($conexao);
-$instrutores = $consultar->consultarInstrutores($conexao);
+    $alunos     = $consultar->consultarAlunosLista($conexao);
+    $instrutores= $consultar->consultarInstrutores($conexao);
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -18,7 +18,7 @@ $instrutores = $consultar->consultarInstrutores($conexao);
                     <label class="form-label text-light">Aluno <span class="text-danger">*</span></label>
                     <select name="codigoAluno" class="form-select bg-dark text-light border-secondary" required>
                         <option value="">Selecione...</option>
-                        <?php foreach ($alunos as $a): ?>
+                        <?php foreach($alunos as $a): ?>
                             <option value="<?= $a['codigo'] ?>" class="bg-dark text-light" <?= $a['codigo'] == $codigoAluno ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($a['nome']) ?>
                             </option>
@@ -41,14 +41,14 @@ $instrutores = $consultar->consultarInstrutores($conexao);
                     <label class="form-label text-light">Instrutor <span class="text-danger">*</span></label>
                     <select name="codigoInstrutor" class="form-select bg-dark text-light border-secondary" required>
                         <option value="">Selecione...</option>
-                        <?php foreach ($instrutores as $i): ?>
+                        <?php foreach($instrutores as $i): ?>
                             <option value="<?= $i['codigo'] ?>" class="bg-dark text-light">
                                 <?= htmlspecialchars($i['nome']) ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
-                
+
                 <div class="col-12 mt-4">
                     <div class="alert alert-secondary text-center">
                         Após salvar os dados do treino, você será redirecionado para a tela de inclusão de exercícios.

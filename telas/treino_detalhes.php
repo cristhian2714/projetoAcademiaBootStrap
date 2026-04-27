@@ -1,24 +1,19 @@
 <?php
-$codigoTreino = isset($_GET['treino']) ? (int)$_GET['treino'] : 0;
+    $codigoTreino = isset($_GET['treino']) ? (int)$_GET['treino'] : 0;
 
-if ($codigoTreino == 0) {
-    echo "<div class='alert alert-danger'>Treino não encontrado.</div>";
-    exit;
-}
+    if($codigoTreino == 0){
+        echo "<div class='alert alert-danger'>Treino não encontrado.</div>";
+        exit;
+    }//fim if
 
-// Fetch treino info
-$treino = $consultar->consultarTreino($conexao, $codigoTreino);
+    $treino              = $consultar->consultarTreino($conexao, $codigoTreino);
+    $exerciciosDrop      = $consultar->consultarExercicios($conexao);
+    $exerciciosVinculados= $consultar->consultarExerciciosTreino($conexao, $codigoTreino);
 
-if (!$treino) {
-    echo "<div class='alert alert-danger'>Treino não encontrado.</div>";
-    exit;
-}
-
-// Fetch general exercícios
-$exerciciosDrop = $consultar->consultarExercicios($conexao);
-
-// Fetch already linked exercícios
-$exerciciosVinculados = $consultar->consultarExerciciosTreino($conexao, $codigoTreino);
+    if(!$treino){
+        echo "<div class='alert alert-danger'>Treino não encontrado.</div>";
+        exit;
+    }//fim if
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -39,7 +34,7 @@ $exerciciosVinculados = $consultar->consultarExerciciosTreino($conexao, $codigoT
                 <form method="POST" action="DAO/treino_action.php?default_action=add_exercicio">
                     <input type="hidden" name="codigoTreinamento" value="<?= $codigoTreino ?>">
                     <input type="hidden" name="aluno" value="<?= $treino['codigoAluno'] ?>">
-                    
+
                     <div class="mb-3">
                         <label class="form-label text-light">Selecione o Exercício</label>
                         <select name="codigoExercicio" class="form-select bg-dark text-light border-secondary" required>
@@ -66,7 +61,7 @@ $exerciciosVinculados = $consultar->consultarExerciciosTreino($conexao, $codigoT
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-7">
         <div class="card bg-dark border-secondary">
             <div class="card-header border-secondary text-light fw-bold">
@@ -85,8 +80,8 @@ $exerciciosVinculados = $consultar->consultarExerciciosTreino($conexao, $codigoT
                                 <span class="badge bg-secondary text-white"><?= $ev['series'] ?> Séries</span>
                                 <span class="badge bg-secondary text-white"><?= $ev['repeticoes'] ?> Reps</span>
                             </div>
-                            <a href="DAO/treino_action.php?default_action=remove_exercicio&codigo=<?= $ev['codigo'] ?>&treino=<?= $codigoTreino ?>" 
-                               class="btn btn-sm btn-outline-danger" 
+                            <a href="DAO/treino_action.php?default_action=remove_exercicio&codigo=<?= $ev['codigo'] ?>&treino=<?= $codigoTreino ?>"
+                               class="btn btn-sm btn-outline-danger"
                                onclick="return confirm('Remover exercício da ficha?')">
                                 <i class="bi bi-trash"></i>
                             </a>
