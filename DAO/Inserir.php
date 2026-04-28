@@ -4,14 +4,16 @@
     use Projeto\DAO\Conexao;
 
     class Inserir{
-        function inserirAluno(Conexao $conexao, $nome, $dtNascimento, $peso, $altura, $objetivo, $codigoPlano){
+        function inserirAluno(Conexao $conexao, $nome, $dtNascimento, $peso, $altura, $objetivo, $email, $senha, $codigoPlano){
             try{
                 $conn         = $conexao->conectar();
                 $nome         = mysqli_real_escape_string($conn, $nome);
                 $objetivo     = mysqli_real_escape_string($conn, $objetivo);
                 $dtNascimento = mysqli_real_escape_string($conn, $dtNascimento);
-                $sql          = "INSERT INTO aluno (nome, dtNascimento, peso, altura, objetivo, codigoPlano) 
-                                 VALUES ('$nome', '$dtNascimento', $peso, $altura, '$objetivo', $codigoPlano)";
+                $email        = mysqli_real_escape_string($conn, $email);
+                $senhaHash    = password_hash($senha, PASSWORD_DEFAULT);
+                $sql          = "INSERT INTO aluno (nome, dtNascimento, peso, altura, objetivo, email, senha, codigoPlano) 
+                                 VALUES ('$nome', '$dtNascimento', $peso, $altura, '$objetivo', '$email', '$senhaHash', $codigoPlano)";
                 return mysqli_query($conn, $sql);
             }catch(Exception $erro){
                 echo "Algo deu errado <br><br>$erro";

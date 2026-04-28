@@ -1,7 +1,19 @@
 <div class="row align-items-center mb-5">
-    <div class="col-md-6">
-        <h1 class="display-5 fw-bold text-success">Visão Geral</h1>
-        <p class="lead text-secondary">Gerencie sua academia de forma fácil e rápida.</p>
+    <div class="col-md-8">
+        <h1 class="display-5 fw-bold text-success">
+            <?php if(isset($_SESSION['aluno_nome'])): ?>
+                Olá, <?= htmlspecialchars(explode(' ', $_SESSION['aluno_nome'])[0]) ?>! 👋
+            <?php else: ?>
+                Visão Geral
+            <?php endif; ?>
+        </h1>
+        <p class="lead text-secondary">
+            <?php if(isset($_SESSION['aluno_plano']) && !empty($_SESSION['aluno_plano'])): ?>
+                Plano ativo: <span class="badge bg-success text-dark"><?= htmlspecialchars($_SESSION['aluno_plano']) ?></span>
+            <?php else: ?>
+                Gerencie sua academia de forma fácil e rápida.
+            <?php endif; ?>
+        </p>
     </div>
 </div>
 

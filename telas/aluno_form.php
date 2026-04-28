@@ -20,24 +20,26 @@
         $peso         = (float)($_POST['peso']        ?? 0);
         $altura       = (float)($_POST['altura']      ?? 0);
         $objetivo     = $_POST['objetivo']     ?? '';
+        $email        = $_POST['email']        ?? '';
+        $senha        = $_POST['senha']        ?? '';
         $codigoPlano  = (int)($_POST['codigoPlano']   ?? 0);
 
         if($codigo > 0){
-            //Atualizar
+            //Atualizar (senha é opcional — se vazio, mantém a atual)
             $atualizar = new Atualizar();
-            if($atualizar->atualizarAluno($conexao, $codigo, $nome, $dtNascimento, $peso, $altura, $objetivo, $codigoPlano)){
+            if($atualizar->atualizarAluno($conexao, $codigo, $nome, $dtNascimento, $peso, $altura, $objetivo, $email, $codigoPlano, $senha)){
                 $mensagem = "<div class='alert alert-success'>Aluno atualizado com sucesso!</div>";
             }else{
                 $mensagem = "<div class='alert alert-danger'>Erro ao atualizar aluno.</div>";
             }//fim if
         }else{
-            //Inserir
+            //Inserir (senha obrigatória)
             $inserir = new Inserir();
-            if($inserir->inserirAluno($conexao, $nome, $dtNascimento, $peso, $altura, $objetivo, $codigoPlano)){
+            if($inserir->inserirAluno($conexao, $nome, $dtNascimento, $peso, $altura, $objetivo, $email, $senha, $codigoPlano)){
                 $mensagem = "<div class='alert alert-success'>Aluno cadastrado com sucesso!</div>";
                 $nome = $dtNascimento = $peso = $altura = $objetivo = $codigoPlano = "";
             }else{
-                $mensagem = "<div class='alert alert-danger'>Erro ao cadastrar aluno.</div>";
+                $mensagem = "<div class='alert alert-danger'>Erro ao cadastrar aluno. Verifique se o e-mail já está em uso.</div>";
             }//fim if
         }//fim if
     }//fim if
@@ -97,6 +99,15 @@
                 <div class="col-12">
                     <label class="form-label text-light">Objetivo <span class="text-danger">*</span></label>
                     <input type="text" name="objetivo" class="form-control bg-dark text-light border-secondary" placeholder="Ex: Hipertrofia, Emagrecimento, Fortalecimento..." required value="<?= $aluno ? htmlspecialchars($aluno['objetivo']) : '' ?>">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label text-light">E-mail <span class="text-danger">*</span></label>
+                    <input type="email" name="email" class="form-control bg-dark text-light border-secondary" placeholder="aluno@email.com" required value="<?= $aluno ? htmlspecialchars($aluno['email']) : '' ?>">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-light">Senha <?= !$aluno ? '<span class="text-danger">*</span>' : '' ?></label>
+                    <input type="password" name="senha" class="form-control bg-dark text-light border-secondary" placeholder="<?= $aluno ? 'Deixe em branco para manter a atual' : 'Mínimo 6 caracteres' ?>" <?= !$aluno ? 'required' : '' ?> minlength="6">
                 </div>
 
                 <div class="col-12 mt-4 text-end">

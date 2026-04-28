@@ -23,23 +23,25 @@
             $_SESSION['msg_type'] = 'success';
 
         }elseif($_SERVER['REQUEST_METHOD'] == 'POST'){
-            $codigo      = isset($_POST['codigo']) ? (int)$_POST['codigo'] : 0;
-            $nome        = $_POST['nome']        ?? '';
-            $dtNascimento= $_POST['dtNascimento']?? '';
-            $peso        = (float)($_POST['peso']   ?? 0);
-            $altura      = (float)($_POST['altura']  ?? 0);
-            $objetivo    = $_POST['objetivo']    ?? '';
-            $codigoPlano = (int)($_POST['codigoPlano'] ?? 0);
+            $codigo       = isset($_POST['codigo'])       ? (int)$_POST['codigo']       : 0;
+            $nome         = $_POST['nome']                ?? '';
+            $dtNascimento = $_POST['dtNascimento']        ?? '';
+            $peso         = (float)($_POST['peso']        ?? 0);
+            $altura       = (float)($_POST['altura']      ?? 0);
+            $objetivo     = $_POST['objetivo']            ?? '';
+            $email        = $_POST['email']               ?? '';
+            $senha        = $_POST['senha']               ?? '';
+            $codigoPlano  = (int)($_POST['codigoPlano']   ?? 0);
 
             if($codigo > 0){
-                //Atualizar
+                //Atualizar (senha é opcional — se vazio, mantém a atual)
                 $atualizar = new Atualizar();
-                $atualizar->atualizarAluno($conexao, $codigo, $nome, $dtNascimento, $peso, $altura, $objetivo, $codigoPlano);
+                $atualizar->atualizarAluno($conexao, $codigo, $nome, $dtNascimento, $peso, $altura, $objetivo, $email, $codigoPlano, $senha);
                 $_SESSION['msg'] = 'Aluno atualizado com sucesso!';
             }else{
-                //Inserir
+                //Inserir (email e senha obrigatórios)
                 $inserir = new Inserir();
-                $inserir->inserirAluno($conexao, $nome, $dtNascimento, $peso, $altura, $objetivo, $codigoPlano);
+                $inserir->inserirAluno($conexao, $nome, $dtNascimento, $peso, $altura, $objetivo, $email, $senha, $codigoPlano);
                 $_SESSION['msg'] = 'Aluno cadastrado com sucesso!';
             }//fim if
 

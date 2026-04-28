@@ -154,5 +154,22 @@
                 echo "Algo deu errado <br><br>$erro";
             }
         }//fim do consultarExercicios
+
+        function consultarAlunoPorEmail(Conexao $conexao, string $email){
+            try{
+                $conn   = $conexao->conectar();
+                $email  = mysqli_real_escape_string($conn, $email);
+                $sql    = "SELECT a.*, p.nome as plano_nome 
+                           FROM aluno a 
+                           LEFT JOIN plano p ON a.codigoPlano = p.codigo 
+                           WHERE a.email = '$email'";
+                $result = mysqli_query($conn, $sql);
+                $dados  = mysqli_fetch_assoc($result);
+                return $dados ? $dados : null;
+            }catch(Exception $erro){
+                echo "Algo deu errado <br><br>$erro";
+            }
+            return null;
+        }//fim do consultarAlunoPorEmail
     }//fim da classe
 ?>

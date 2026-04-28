@@ -11,8 +11,11 @@
     $consultar = new Consultar();
     $mensagem  = "";
 
-    //Excluir treino
-    if(isset($_GET['action']) && $_GET['action'] == 'delete_treino' && isset($_GET['codigo'])){
+    // Detectar role (já definido no index.php, mas por segurança verificamos a sessão)
+    $isAdmin = isset($_SESSION['tipo']) && $_SESSION['tipo'] === 'admin';
+
+    //Excluir treino (apenas admin)
+    if($isAdmin && isset($_GET['action']) && $_GET['action'] == 'delete_treino' && isset($_GET['codigo'])){
         $codigoTreino = (int)$_GET['codigo'];
         $excluir      = new Excluir();
         if($excluir->excluirTreino($conexao, $codigoTreino)){
@@ -22,10 +25,17 @@
         }//fim if
     }//fim if
 
-    $codigoAluno = isset($_GET['aluno']) ? (int)$_GET['aluno'] : 0;
-    $alunos      = $consultar->consultarAlunosLista($conexao);
-    $treinos     = [];
+    // Determinar qual aluno mostrar
+    if($isAdmin){
+        $codigoAluno = isset($_GET['aluno']) ? (int)$_GET['aluno'] : 0;
+        $alunos      = $consultar->consultarAlunosLista($conexao);
+    }else{
+        // Aluno sempre vê seus próprios treinos
+        $codigoAluno = (int)$_SESSION['aluno_codigo'];
+        $alunos      = [];
+    }//fim if
 
+    $treinos = [];
     if($codigoAluno > 0){
         $treinos = $consultar->consultarTreinosAluno($conexao, $codigoAluno);
         foreach($treinos as &$t){
@@ -36,30 +46,49 @@
 
 <?= $mensagem ?>
 
-<div class="row align-items-center mb-4">
-    <div class="col-md-5">
-        <h2 class="text-light">Treino do Dia</h2>
-        <p class="text-secondary">Selecione um aluno para ver sua ficha.</p>
+<?php if($isAdmin): ?>
+    <!-- ══ HEADER ADMIN ══ -->
+    <div class="row align-items-center mb-4">
+        <div class="col-md-5">
+            <h2 class="text-light">Treino do Dia</h2>
+            <p class="text-secondary">Selecione um aluno para ver sua ficha.</p>
+        </div>
+        <div class="col-md-4 mb-3 mb-md-0">
+            <form method="GET" action="index.php">
+                <input type="hidden" name="page" value="treinos">
+                <select name="aluno" class="form-select bg-dark text-light border-secondary" onchange="this.form.submit()">
+                    <option value="">Selecione um Aluno...</option>
+                    <?php foreach($alunos as $a): ?>
+                        <option value="<?= $a['codigo'] ?>" class="bg-dark text-light" <?= $a['codigo'] == $codigoAluno ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($a['nome']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </form>
+        </div>
+        <div class="col-md-3 text-md-end">
+            <a href="index.php?page=treino_form<?= $codigoAluno > 0 ? '&aluno=' . $codigoAluno : '' ?>" class="btn btn-outline-success fw-bold w-100">
+                <i class="bi bi-plus-circle"></i> Novo Treino
+            </a>
+        </div>
     </div>
-    <div class="col-md-4 mb-3 mb-md-0">
-        <form method="GET" action="index.php">
-            <input type="hidden" name="page" value="treinos">
-            <select name="aluno" class="form-select bg-dark text-light border-secondary" onchange="this.form.submit()">
-                <option value="">Selecione um Aluno...</option>
-                <?php foreach($alunos as $a): ?>
-                    <option value="<?= $a['codigo'] ?>" class="bg-dark text-light" <?= $a['codigo'] == $codigoAluno ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($a['nome']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </form>
+<?php else: ?>
+    <!-- ══ HEADER ALUNO ══ -->
+    <div class="row align-items-center mb-4">
+        <div class="col-12">
+            <h2 class="text-light">
+                <i class="bi bi-activity text-success"></i>
+                Minha Ficha de Treino
+            </h2>
+            <p class="text-secondary">
+                Bem-vindo(a), <strong class="text-white"><?= htmlspecialchars(explode(' ', $_SESSION['aluno_nome'])[0]) ?></strong>!
+                <?php if(isset($_SESSION['aluno_plano']) && !empty($_SESSION['aluno_plano'])): ?>
+                    Plano ativo: <span class="badge bg-success text-dark"><?= htmlspecialchars($_SESSION['aluno_plano']) ?></span>
+                <?php endif; ?>
+            </p>
+        </div>
     </div>
-    <div class="col-md-3 text-md-end">
-        <a href="index.php?page=treino_form<?= $codigoAluno > 0 ? '&aluno=' . $codigoAluno : '' ?>" class="btn btn-outline-success fw-bold w-100">
-            <i class="bi bi-plus-circle"></i> Novo Treino
-        </a>
-    </div>
-</div>
+<?php endif; ?>
 
 <div id="treinos-container">
     <?php if($codigoAluno == 0): ?>
@@ -84,6 +113,7 @@
                     <div class="text-secondary small mt-2">
                         <i class="bi bi-calendar-check"></i> Frequência: <?= htmlspecialchars($t['frequencia']) ?> &nbsp;&nbsp;|&nbsp;&nbsp;
                         <i class="bi bi-person-badge"></i> Instrutor: <?= htmlspecialchars($t['instrutor_nome'] ?? 'Não definido') ?>
+                        <?php if($isAdmin): ?>
                         &nbsp;&nbsp;|&nbsp;&nbsp;
                         <a href="index.php?page=treino_detalhes&treino=<?= $t['codigo'] ?>" class="text-warning text-decoration-none">
                             <i class="bi bi-gear"></i> Editar Exercícios
@@ -92,6 +122,7 @@
                         <a href="index.php?page=treinos&aluno=<?= $codigoAluno ?>&action=delete_treino&codigo=<?= $t['codigo'] ?>" class="text-danger text-decoration-none" onclick="return confirm('Deseja excluir este treino?')">
                             <i class="bi bi-trash"></i> Excluir Treino
                         </a>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <div class="card-body">
@@ -112,7 +143,9 @@
                         <?php endforeach; ?>
                     <?php else: ?>
                         <p class="text-center text-secondary my-4">Nenhum exercício vinculado a este treino ainda.
+                            <?php if($isAdmin): ?>
                             <a href="index.php?page=treino_detalhes&treino=<?= $t['codigo'] ?>" class="text-success">Adicionar Exercícios</a>
+                            <?php endif; ?>
                         </p>
                     <?php endif; ?>
                 </div>

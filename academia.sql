@@ -22,7 +22,10 @@ create table aluno(
     peso decimal(5,2) not null,
     altura decimal(4,2) not null,
     objetivo varchar(100) not null,
-    codigoPlano int not null
+    email varchar(150) not null,
+    senha varchar(255) not null,
+    codigoPlano int not null,
+    UNIQUE(email)
 )engine = InnoDB;
 
 create table instrutor(
@@ -30,6 +33,13 @@ create table instrutor(
     nome varchar(150) not null,
     especialidade varchar(100) not null
 )engine = InnoDB;
+
+INSERT INTO instrutor (nome, especialidade) VALUES 
+('Carlos Silva', 'Musculação'),
+('Ana Oliveira', 'Funcional'),
+('Roberto Santos', 'Crossfit'),
+('Fernanda Costa', 'Pilates'),
+('Marcos Lima', 'Natação');
 
 
 
