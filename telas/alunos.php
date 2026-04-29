@@ -13,11 +13,23 @@
 
     if(isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['codigo'])){
         $codigo  = (int)$_GET['codigo'];
-        $excluir = new Excluir();
-        if($excluir->excluirAluno($conexao, $codigo)){
-            $mensagem = "<div class='alert alert-success'>Aluno excluído com sucesso!</div>";
+
+        // Verificar se o aluno possui treinos ativos antes de excluir
+        $treinosAluno = $consultar->consultarTreinosAluno($conexao, $codigo);
+        if(!empty($treinosAluno)){
+            $mensagem = "<div class='alert alert-danger'>
+                            <i class='bi bi-shield-exclamation'></i> 
+                            <strong>Não é possível excluir este aluno!</strong><br>
+                            Este aluno possui <strong>" . count($treinosAluno) . " treino(s)</strong> ativo(s) vinculado(s). 
+                            Exclua os treinos primeiro antes de remover o aluno.
+                         </div>";
         }else{
-            $mensagem = "<div class='alert alert-danger'>Erro ao excluir aluno.</div>";
+            $excluir = new Excluir();
+            if($excluir->excluirAluno($conexao, $codigo)){
+                $mensagem = "<div class='alert alert-success'>Aluno excluído com sucesso!</div>";
+            }else{
+                $mensagem = "<div class='alert alert-danger'>Erro ao excluir aluno.</div>";
+            }//fim if
         }//fim if
     }//fim if
 

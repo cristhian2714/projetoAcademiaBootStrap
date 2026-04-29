@@ -24,24 +24,36 @@
         $senha        = $_POST['senha']        ?? '';
         $codigoPlano  = (int)($_POST['codigoPlano']   ?? 0);
 
-        if($codigo > 0){
-            //Atualizar (senha é opcional — se vazio, mantém a atual)
-            $atualizar = new Atualizar();
-            if($atualizar->atualizarAluno($conexao, $codigo, $nome, $dtNascimento, $peso, $altura, $objetivo, $email, $codigoPlano, $senha)){
-                $mensagem = "<div class='alert alert-success'>Aluno atualizado com sucesso!</div>";
-            }else{
-                $mensagem = "<div class='alert alert-danger'>Erro ao atualizar aluno.</div>";
-            }//fim if
+        // Validação de data de nascimento
+        $dataObj = DateTime::createFromFormat('Y-m-d', $dtNascimento);
+        $hoje    = new DateTime();
+        if(!$dataObj || $dataObj > $hoje){
+            $mensagem = "<div class='alert alert-danger'>A data de nascimento não pode ser uma data futura.</div>";
         }else{
-            //Inserir (senha obrigatória)
-            $inserir = new Inserir();
-            if($inserir->inserirAluno($conexao, $nome, $dtNascimento, $peso, $altura, $objetivo, $email, $senha, $codigoPlano)){
-                $mensagem = "<div class='alert alert-success'>Aluno cadastrado com sucesso!</div>";
-                $nome = $dtNascimento = $peso = $altura = $objetivo = $codigoPlano = "";
+            $idade = $hoje->diff($dataObj)->y;
+            if($idade < 10){
+                $mensagem = "<div class='alert alert-danger'>O aluno deve ter no mínimo 10 anos de idade.</div>";
+            }elseif($idade > 100){
+                $mensagem = "<div class='alert alert-danger'>Data de nascimento inválida (idade máxima: 100 anos).</div>";
+            }elseif($codigo > 0){
+                //Atualizar (senha é opcional — se vazio, mantém a atual)
+                $atualizar = new Atualizar();
+                if($atualizar->atualizarAluno($conexao, $codigo, $nome, $dtNascimento, $peso, $altura, $objetivo, $email, $codigoPlano, $senha)){
+                    $mensagem = "<div class='alert alert-success'>Aluno atualizado com sucesso!</div>";
+                }else{
+                    $mensagem = "<div class='alert alert-danger'>Erro ao atualizar aluno.</div>";
+                }//fim if
             }else{
-                $mensagem = "<div class='alert alert-danger'>Erro ao cadastrar aluno. Verifique se o e-mail já está em uso.</div>";
-            }//fim if
-        }//fim if
+                //Inserir (senha obrigatória)
+                $inserir = new Inserir();
+                if($inserir->inserirAluno($conexao, $nome, $dtNascimento, $peso, $altura, $objetivo, $email, $senha, $codigoPlano)){
+                    $mensagem = "<div class='alert alert-success'>Aluno cadastrado com sucesso!</div>";
+                    $nome = $dtNascimento = $peso = $altura = $objetivo = $codigoPlano = "";
+                }else{
+                    $mensagem = "<div class='alert alert-danger'>Erro ao cadastrar aluno. Verifique se o e-mail já está em uso.</div>";
+                }//fim if
+            }//fim if validação de idade
+        }//fim if data futura
     }//fim if
 
     $codigo = isset($_GET['codigo']) ? (int)$_GET['codigo'] : 0;
@@ -73,7 +85,15 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label text-light">Data de Nascimento <span class="text-danger">*</span></label>
-                    <input type="date" name="dtNascimento" class="form-control bg-dark text-light border-secondary" required value="<?= $aluno ? $aluno['dtNascimento'] : '' ?>">
+                    <?php
+                        // Limita: máximo = 10 anos atrás (idade mínima), mínimo = 100 anos atrás
+                        $maxData = date('Y-m-d', strtotime('-10 years'));
+                        $minData = date('Y-m-d', strtotime('-100 years'));
+                    ?>
+                    <input type="date" name="dtNascimento" class="form-control bg-dark text-light border-secondary" required
+                           value="<?= $aluno ? $aluno['dtNascimento'] : '' ?>"
+                           max="<?= $maxData ?>" min="<?= $minData ?>">
+                    <small class="text-secondary">Idade mínima: 10 anos</small>
                 </div>
 
                 <div class="col-md-4">

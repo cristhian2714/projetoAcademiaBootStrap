@@ -26,6 +26,26 @@
             exit;
         }
 
+        // Validação de data de nascimento
+        $dataObj = DateTime::createFromFormat('Y-m-d', $dtNascimento);
+        $hoje    = new DateTime();
+        if(!$dataObj || $dataObj > $hoje){
+            $_SESSION['cadastro_erro'] = 'A data de nascimento não pode ser uma data futura.';
+            header('Location: ../cadastro_aluno.php');
+            exit;
+        }
+        $idade = $hoje->diff($dataObj)->y;
+        if($idade < 10){
+            $_SESSION['cadastro_erro'] = 'O aluno deve ter no mínimo 10 anos de idade.';
+            header('Location: ../cadastro_aluno.php');
+            exit;
+        }
+        if($idade > 100){
+            $_SESSION['cadastro_erro'] = 'Data de nascimento inválida (idade máxima: 100 anos).';
+            header('Location: ../cadastro_aluno.php');
+            exit;
+        }
+
         if(strlen($senha) < 6){
             $_SESSION['cadastro_erro'] = 'A senha deve ter no mínimo 6 caracteres.';
             header('Location: ../cadastro_aluno.php');

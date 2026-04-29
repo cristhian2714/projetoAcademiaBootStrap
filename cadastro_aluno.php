@@ -102,8 +102,15 @@ $planos    = $consultar->consultarPlanos($conexao); // array com todos os planos
                                 <label for="dtNascimento" class="form-label text-light">
                                     <i class="bi bi-calendar3 me-1"></i> Data de Nascimento <span class="text-danger">*</span>
                                 </label>
+                                <?php
+                                    // Limita: máximo = 10 anos atrás (idade mínima), mínimo = 100 anos atrás
+                                    $maxData = date('Y-m-d', strtotime('-10 years'));
+                                    $minData = date('Y-m-d', strtotime('-100 years'));
+                                ?>
                                 <input type="date" class="form-control bg-dark text-light border-secondary"
-                                       id="dtNascimento" name="dtNascimento" required>
+                                       id="dtNascimento" name="dtNascimento" required
+                                       max="<?= $maxData ?>" min="<?= $minData ?>">
+                                <small class="text-secondary">Idade mínima: 10 anos</small>
                             </div>
                             <div class="col-md-6">
                                 <label for="codigoPlano" class="form-label text-light">
@@ -228,6 +235,27 @@ $planos    = $consultar->consultarPlanos($conexao); // array com todos os planos
         const senha    = document.getElementById('senha').value;
         const confirma = document.getElementById('confirmarSenha').value;
         const campo    = document.getElementById('confirmarSenha');
+
+        // Validação de data de nascimento no JavaScript
+        const dtNasc   = document.getElementById('dtNascimento');
+        const dataNasc = new Date(dtNasc.value);
+        const hoje     = new Date();
+        const idadeMin = new Date();
+        idadeMin.setFullYear(idadeMin.getFullYear() - 10); // data máxima = 10 anos atrás
+
+        if (dataNasc > hoje) {
+            e.preventDefault();
+            dtNasc.classList.add('is-invalid');
+            alert('A data de nascimento não pode ser uma data futura.');
+            return;
+        }//fim if
+
+        if (dataNasc > idadeMin) {
+            e.preventDefault();
+            dtNasc.classList.add('is-invalid');
+            alert('O aluno deve ter no mínimo 10 anos de idade.');
+            return;
+        }//fim if
 
         if (senha !== confirma) {
             e.preventDefault();              // impede o envio
